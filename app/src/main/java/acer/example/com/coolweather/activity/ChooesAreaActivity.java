@@ -2,7 +2,10 @@ package acer.example.com.coolweather.activity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
@@ -46,9 +49,19 @@ public class ChooesAreaActivity extends Activity {
     private City selectedCity;
     private int currentLevel;
 
+    private boolean isFromWeatherActivity;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        isFromWeatherActivity =getIntent().getBooleanExtra("from_weather_activity",false);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        if(prefs.getBoolean("city_selected",false) && !isFromWeatherActivity){
+            Intent intent =  new Intent(this,WeatherActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.choose_area);
         listView = (ListView) findViewById(R.id.List_view);
@@ -65,6 +78,11 @@ public class ChooesAreaActivity extends Activity {
                 }else if(currentLevel == LEVEL_CITY){
                     selectedCity = cityList.get(index);
                     queryCounties();
+                }else if(currentLevel == LEVEL_COUNTY){
+                    String countyCode = countyList.get(index).getCountyCode();
+                    Intent intent = new Intent(ChooesAreaActivity.this,WeatherActivity.class);
+                    startActivity(intent);
+                    finish();
                 }
             }
         });
@@ -189,6 +207,10 @@ public class ChooesAreaActivity extends Activity {
         }else if(currentLevel == LEVEL_CITY){
             queryProvinces();
         }else {
+            if(isFromWeatherActivity){
+                Intent intent = new Intent(this,WeatherActivity.class);
+                startActivity(intent);
+            }
             finish();
         }
     }
